@@ -4,23 +4,24 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	dockerClient "github.com/tunein/terraform-provider-docker/provider/docker-client"
 	dockerRegistry "github.com/tunein/terraform-provider-docker/provider/docker-registry"
 	"github.com/tunein/terraform-provider-docker/provider/helper"
 )
 
 type DockerProvider struct {
-	dockerClient   *helper.DockerClient
-	registryClient *dockerRegistry.RegistryHttpClient
+	dockerClient   *dockerClient.SdkClient
+	registryClient *dockerRegistry.HttpClient
 }
 
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"docker_hub_username": &schema.Schema{
+			"docker_hub_username": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"docker_hub_password": &schema.Schema{
+			"docker_hub_password": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -47,12 +48,12 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		return nil, diag.FromErr(err)
 	}
 
-	dockerClient, err := helper.NewDockerClient(authStr)
+	client, err := dockerClient.NewClient(authStr)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
 
-	provider.dockerClient = dockerClient
+	provider.dockerClient = client
 
 	// AUTH for registry
 	authStr, err = awsClient.GetAuthStrFromEcr()

@@ -1,0 +1,1 @@
+terraform import docker_downstream_image.image <account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>

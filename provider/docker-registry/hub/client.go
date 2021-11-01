@@ -10,11 +10,11 @@ import (
 	"strings"
 )
 
-type DockerHubLoginResponce struct {
+type DockerHubLoginResponse struct {
 	Token string `json:"token"`
 }
 
-type DockerHubClient struct {
+type RegistryClient struct {
 	client     *http.Client
 	v1endpoint string
 	v2endpoint string
@@ -23,22 +23,22 @@ type DockerHubClient struct {
 	token      string
 }
 
-func NewDockerHubClient(username, password string) *DockerHubClient {
+func NewDockerHubClient(username, password string) *RegistryClient {
 	client := &http.Client{}
-	return &DockerHubClient{
+	return &RegistryClient{
 		client:     client,
 		v1endpoint: "https://index.docker.io/v1",
-		v2endpoint: "https://hub.docker.com",
+		v2endpoint: "https://hub.docker.com/v2",
 		username:   username,
 		password:   password,
 	}
 }
 
-func (c DockerHubClient) Login() error {
+func (c RegistryClient) Login() error {
 	params := url.Values{}
 	params.Set("username", c.username)
 	params.Set("password", c.password)
-	request, err := http.NewRequest("POST", c.v2endpoint+"/v2/users/login", strings.NewReader(params.Encode()))
+	request, err := http.NewRequest("POST", c.v2endpoint+"/users/login", strings.NewReader(params.Encode()))
 	request.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		return err
@@ -52,23 +52,23 @@ func (c DockerHubClient) Login() error {
 	if err != nil {
 		return err
 	}
-	var result DockerHubLoginResponce
+	var result DockerHubLoginResponse
 	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-		fmt.Println("Can not unmarshal JSON")
+		return fmt.Errorf("can not unmarshal JSON")
 	}
 	c.token = result.Token
 	return nil
 }
 
-func (c DockerHubClient) IfImageExist(repo, tag string) error {
-	params := strings.Split(repo, "/")
-	request, err := http.NewRequest("GET", fmt.Sprintf("https://index.docker.io/v1/repositories/%s/%s/tags/%s", params[1], params[2], tag), nil)
+func (c RegistryClient) IfImageExist(repo, tag string) error {
+	repo = strings.ReplaceAll(repo, "docker.io/", "")
+	request, err := http.NewRequest("GET", fmt.Sprintf("https://index.docker.io/v1/repositories/%s/tags/%s", repo, tag), nil)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	response, err := c.client.Do(request)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if response.StatusCode != 200 {
 		return errors.New("Image was not found: " + repo + ":" + tag)

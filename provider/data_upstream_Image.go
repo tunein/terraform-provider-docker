@@ -53,8 +53,14 @@ func dataSourceImageRead(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
-	d.Set("repo", image.Repo)
-	d.Set("tag", image.Tag)
+	err = d.Set("repo", image.Repo)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = d.Set("tag", image.Tag)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }

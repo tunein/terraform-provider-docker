@@ -6,6 +6,7 @@ import (
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 	"io"
+	"log"
 	"strings"
 )
 
@@ -55,6 +56,9 @@ func (d *DockerClient) ImagePull(repo, tag string) (err error) {
 		return
 	}
 	defer reader.Close()
+	if logs, err := io.ReadAll(reader); err == nil {
+		log.Print(string(logs))
+	}
 	return
 }
 
@@ -72,10 +76,8 @@ func (d DockerClient) ImagePush(repo, tag string) (err error) {
 		return
 	}
 	defer reader.Close()
-	var out string
-	if b, err := io.ReadAll(reader); err == nil {
-		out = string(b)
+	if logs, err := io.ReadAll(reader); err == nil {
+		log.Print(string(logs))
 	}
-	fmt.Println(out)
 	return
 }

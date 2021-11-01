@@ -4,13 +4,13 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	dockerRegistry "github.com/tunein/terraform-provider-docker/provider/docker-registry"
 	"github.com/tunein/terraform-provider-docker/provider/helper"
 )
 
 type DockerProvider struct {
-	dockerHubUsername string
-	dockerHubPassword string
-	dockerClient      *helper.DockerClient
+	dockerClient   *helper.DockerClient
+	registryClient *dockerRegistry.RegistryHttpClient
 }
 
 func Provider() *schema.Provider {
@@ -39,15 +39,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	var diags diag.Diagnostics
 	provider := &DockerProvider{}
 
-	username := d.Get("docker_hub_username").(string)
-	password := d.Get("docker_hub_password").(string)
-
-	if (username != "") && (password != "") {
-		provider.dockerHubUsername = username
-		provider.dockerHubPassword = password
-	}
-
 	awsClient := helper.NewAwsClient()
+
+	// AUTH for docker client
 	authStr, err := awsClient.GetDockerAuthStrFromEcr()
 	if err != nil {
 		return nil, diag.FromErr(err)
@@ -59,6 +53,18 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	provider.dockerClient = dockerClient
+
+	// AUTH for registry
+	authStr, err = awsClient.GetAuthStrFromEcr()
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	username := d.Get("docker_hub_username").(string)
+	password := d.Get("docker_hub_password").(string)
+
+	registryClient := dockerRegistry.NewRegistryHttpClient(authStr, username, password)
+	provider.registryClient = registryClient
 
 	return provider, diags
 }

@@ -25,6 +25,10 @@ func ResourceDownstreamImage() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"digest": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -51,19 +55,33 @@ func resourceDownstreamImageCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	d.SetId("1")
+	d.SetId(downstreamRepo + ":" + tag)
 
 	return nil
 }
 
 func resourceDownstreamImageRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var upstreamRepo = d.Get("upstream_repo").(string)
+	var downstreamRepo = d.Get("downstream_repo").(string)
+	var tag = d.Get("tag").(string)
+	provider := m.(*DockerProvider)
+
+	err := provider.registryClient.IfImageExist(downstreamRepo, tag)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.Set("upstream_repo", upstreamRepo)
+	d.Set("downstream_repo", downstreamRepo)
+	d.Set("tag", tag)
+	d.Set("digest", "")
+
 	return diags
 }
 
 func resourceDownstreamImageUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	return diags
+	return resourceDownstreamImageCreate(ctx, d, m)
 }
 
 func resourceDownstreamImageDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

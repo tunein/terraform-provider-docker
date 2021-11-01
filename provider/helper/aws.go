@@ -35,6 +35,17 @@ func NewAwsClient() (awsClient *AwsClient) {
 	return awsClient
 }
 
+// AUTH str for ECR
+func (c *AwsClient) GetAuthStrFromEcr() (string, error) {
+	tokenOutput, err := c.ecr.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
+	if err != nil {
+		return "", err
+	}
+	authStr := aws.StringValue(tokenOutput.AuthorizationData[0].AuthorizationToken)
+	return authStr, nil
+}
+
+// AUTH str for Docker
 func (c *AwsClient) GetDockerAuthStrFromEcr() (string, error) {
 	tokenOutput, err := c.ecr.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
 	if err != nil {
@@ -62,5 +73,4 @@ func (c *AwsClient) GetDockerAuthStrFromEcr() (string, error) {
 	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
 
 	return authStr, nil
-
 }

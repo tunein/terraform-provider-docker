@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/tunein/terraform-provider-docker/provider/helper"
 	"strconv"
 	"time"
 )
@@ -38,13 +37,6 @@ func dataSourceImageRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	var image = &Image{}
 
-	awsClient := helper.NewAwsClient()
-	authStr, err := awsClient.GetDockerAuthStrFromEcr()
-	if err != nil {
-		diag.FromErr(err)
-	}
-	registryHttpClient := helper.NewRegistryHttpClient(authStr, provider.dockerHubUsername, provider.dockerHubPassword)
-
 	repo, ok := d.GetOk("repo")
 	if ok {
 		image.Repo = repo.(string)
@@ -55,7 +47,7 @@ func dataSourceImageRead(ctx context.Context, d *schema.ResourceData, m interfac
 		image.Tag = tag.(string)
 	}
 
-	err = registryHttpClient.IfImageExist(image.Repo, image.Tag)
+	err := provider.registryClient.IfImageExist(image.Repo, image.Tag)
 	if err != nil {
 		return diag.FromErr(err)
 	}

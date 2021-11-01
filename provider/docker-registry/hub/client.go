@@ -1,4 +1,4 @@
-package helper
+package hub
 
 import (
 	"encoding/json"

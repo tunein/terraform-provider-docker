@@ -95,9 +95,17 @@ func resourceDownstreamImageRead(ctx context.Context, d *schema.ResourceData, m 
 		tag = image[1]
 	}
 
-	err := provider.registryClient.IfImageExist(downstreamRepo, tag)
+	imageExist, err := provider.registryClient.DoesImageExist(downstreamRepo, tag)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+	if !imageExist {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Image do not exist",
+			Detail:   "The image with such tag was not found in the registry.",
+		})
+		return diags
 	}
 
 	err = d.Set("upstream_repo", upstreamRepo)

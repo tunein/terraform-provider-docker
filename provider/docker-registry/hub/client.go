@@ -2,7 +2,6 @@ package hub
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -60,18 +59,18 @@ func (c RegistryClient) Login() error {
 	return nil
 }
 
-func (c RegistryClient) IfImageExist(repo, tag string) error {
+func (c RegistryClient) DoesImageExist(repo, tag string) (bool, error) {
 	repo = strings.ReplaceAll(repo, "docker.io/", "")
 	request, err := http.NewRequest("GET", fmt.Sprintf("https://index.docker.io/v1/repositories/%s/tags/%s", repo, tag), nil)
 	if err != nil {
-		return err
+		return false, err
 	}
 	response, err := c.client.Do(request)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if response.StatusCode != 200 {
-		return errors.New("Image was not found: " + repo + ":" + tag)
+		return false, nil
 	}
-	return nil
+	return true, nil
 }

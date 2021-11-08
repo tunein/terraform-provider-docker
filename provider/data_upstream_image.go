@@ -50,9 +50,17 @@ func dataSourceImageRead(ctx context.Context, d *schema.ResourceData, m interfac
 		image.Tag = tag.(string)
 	}
 
-	err := provider.registryClient.IfImageExist(image.Repo, image.Tag)
+	imageExist, err := provider.registryClient.DoesImageExist(image.Repo, image.Tag)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+	if !imageExist {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Image do not exist",
+			Detail:   "The image with such tag was not found in the registry.",
+		})
+		return diags
 	}
 
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))

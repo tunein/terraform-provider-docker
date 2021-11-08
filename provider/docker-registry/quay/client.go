@@ -1,7 +1,6 @@
 package quay
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -18,15 +17,15 @@ func (c RegistryClient) Login() error {
 	return nil
 }
 
-func (c RegistryClient) IfImageExist(repo, tag string) error {
+func (c RegistryClient) DoesImageExist(repo, tag string) (bool, error) {
 	params := strings.Split(repo, "/")
 	url := fmt.Sprintf("https://quay.io/v2/%s/%s/manifests/%s", params[1], params[2], tag)
 	response, err := http.Get(url)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if response.StatusCode != 200 {
-		return errors.New("Image was not found: " + repo + ":" + tag)
+		return false, nil
 	}
-	return nil
+	return true, nil
 }

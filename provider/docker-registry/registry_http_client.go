@@ -24,16 +24,16 @@ func NewRegistryHttpClient(ecrAuthStr, hubLogin, hubPassword string) *HttpClient
 
 type RegistryProvider interface {
 	Login() error
-	IfImageExist(repo, tag string) error
+	DoesImageExist(repo, tag string) (bool, error)
 }
 
-func (c HttpClient) IfImageExist(repo, tag string) error {
+func (c HttpClient) DoesImageExist(repo, tag string) (bool, error) {
 	provider := c.getProvider(repo)
 	err := provider.Login()
 	if err != nil {
-		return err
+		return false, err
 	}
-	return provider.IfImageExist(repo, tag)
+	return provider.DoesImageExist(repo, tag)
 }
 
 func (c HttpClient) getProvider(repo string) RegistryProvider {

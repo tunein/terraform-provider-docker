@@ -3,6 +3,7 @@ package helper
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
@@ -58,6 +59,9 @@ func (c *AwsClient) GetDockerAuthStrFromEcr() (string, error) {
 	}
 
 	parts := strings.SplitN(string(decodedToken), ":", 2)
+	if len(parts) != 2 {
+		return "", fmt.Errorf("invalid auhtorization token. Report an issue to this docker provider")
+	}
 
 	authConfig := types.AuthConfig{
 		Username:      parts[0],

@@ -48,3 +48,9 @@ resource "docker_downstream_image" "alpine" {
   tag             = data.docker_upstream_image.alpine.tag
 }
 ```
+
+## Development 
+
+### Debug
+
+Add `--debug` as a program argument to be able to debug the provider. 

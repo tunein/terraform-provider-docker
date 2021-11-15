@@ -21,7 +21,7 @@ $ make build
 terraform {
   required_providers {
     docker = {
-      version = "0.1.0"
+      version = "{{VERSION}}"
       source  = "tunein.com/devops/docker"
     }
   }

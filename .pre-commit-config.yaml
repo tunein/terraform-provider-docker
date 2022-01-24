@@ -1,0 +1,14 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: trailing-whitespace
+    exclude: ^.*/scripts/.*\.txt$
+  - id: end-of-file-fixer
+    exclude: ^.*/scripts/.*\.txt$
+
+- repo: git@github.com:tunein/ccsv
+  rev: 1.1.0
+  hooks:
+    - id: ccsv
+      args: ["-r"]
